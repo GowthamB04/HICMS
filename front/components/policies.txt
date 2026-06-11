@@ -1,0 +1,7 @@
+Policies component
+==================
+
+- Location: frontend/insurance-frontend/src/app/components/policies
+- Purpose: view and manage insurance policies (admin) and view available policies (policyholders).
+- Seed note: initial policies in `newone.sql` use IDs POL001..POL005 with ACTIVE dates in 2025–2027.
+- Uses `policies` API endpoints under `/api/policies`.

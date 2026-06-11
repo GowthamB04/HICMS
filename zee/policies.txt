@@ -27,6 +27,10 @@ Base URL: /api/policies
        "endDate": "2025-01-01"
      }
 
+---
+Seed notes:
+* The project seed uses policy numbers `POL001`..`POL00N` for initial sample policies. The first five seeded policies are `POL001`..`POL005` and have ACTIVE dates spanning 2025–2027 in the current seed (`newone.sql`).
+
 4. PUT /api/policies/{policyId}
    - Description: Update a policy.
    - Role: ADMIN

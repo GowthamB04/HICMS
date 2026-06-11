@@ -1,0 +1,8 @@
+Claims component
+=================
+
+- Location: frontend/insurance-frontend/src/app/components/claims
+- Purpose: list and create claims, show claim details and document links.
+- Important: sample claimNumber format used across seed and docs: CL-1781094831XXX.
+- When creating a claim ensure four documents are uploaded (Medical Bill, Prescription, Treatment Bill, Hospital Bill).
+- Uses `claim.service.ts` for backend interactions (`/api/claims`).

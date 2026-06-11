@@ -16,9 +16,9 @@ Base URL: /api/documents
    - Role: authenticated
    - Body Example:
      {
-       "documentName": "Medical_Report_CLM011.pdf",
-       "documentType": "Medical Report",
-       "documentPath": "/documents/medical_reports/CLM011.pdf",
+       "documentName": "Medical_Bill_CL-1781094831001.pdf",
+       "documentType": "Medical Bill",
+       "documentPath": "/documents/medical_bills/CL-1781094831001_MedicalBill.pdf",
        "claim": { "claimId": 11 }
      }
 

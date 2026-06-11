@@ -38,6 +38,13 @@ export class NewClaimComponent implements OnInit {
   popupType: 'success' | 'error' | '' = '';
   showDuplicateConfirmation = false;
   policyList: UserPolicy[] = [];
+  
+  get activePolicies(): UserPolicy[] {
+    return this.policyList.filter((p) => {
+      const status = p.insurancePolicy?.policyStatus ?? p.policyActiveStatus ?? '';
+      return (status || '').toUpperCase() === 'ACTIVE';
+    });
+  }
   claimHistory: any[] = [];
   selectedPolicyId: number | null = null;
 
@@ -159,6 +166,22 @@ export class NewClaimComponent implements OnInit {
       case 1:
         if (!this.selectedPolicyId) {
           this.showPopup('Please select one of your active policies to continue.', 'error');
+          return false;
+        }
+        // Ensure the selected policy is ACTIVE before proceeding
+        const sel = this.policyList.find((p) => p.insurancePolicy?.policyId === this.selectedPolicyId);
+        const status = sel?.insurancePolicy?.policyStatus ?? sel?.policyActiveStatus ?? '';
+        if ((status || '').toUpperCase() !== 'ACTIVE') {
+          // Show requested popup message and reset the flow back to start
+          const msg = 'Selected policy is inactive. You cannot raise a claim for this policy. raise a claim only for active policie';
+          this.showPopup(msg, 'error');
+          // reset form and step after brief delay so user sees the message
+          setTimeout(() => {
+            this.selectedPolicyId = null;
+            this.currentStep = 1;
+            // navigate to the new-claim route to restart the flow
+            this.router.navigate(['/new-claim']);
+          }, 2000);
           return false;
         }
         return true;

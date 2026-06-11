@@ -1,0 +1,6 @@
+Users component
+================
+
+- Location: frontend/insurance-frontend/src/app/components/users
+- Purpose: admin user management and policyholder profile detail views.
+- Authentication: app uses basic auth flows; `auth.service.ts` stores current role and session.

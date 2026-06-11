@@ -1,0 +1,8 @@
+Project seed notes
+===================
+
+- Claim identifiers in the current seed use the pattern: CL-1781094831XXX (example: CL-1781094831001).
+- Each claim should include exactly four documents: Medical Bill, Prescription, Treatment Bill, Hospital Bill.
+- The main seed file `newone.sql` does NOT insert payment records. Use `de.sql` or API endpoints to create payments when required.
+- The first five seeded policies are named POL001..POL005 and have ACTIVE start dates in the 2025–2027 range in the current `newone.sql`.
+- Analytics that report `totalPaidAmount` sum `paymentAmount` from the `payments` table where `paymentStatus = 'COMPLETED'`.

@@ -1,0 +1,9 @@
+Dashboard component
+===================
+
+- Location: frontend/insurance-frontend/src/app/components/dashboard
+- Purpose: show role-aware summary cards (policyholder metrics, approver summary when role=APPROVER, admin quick links).
+- Data sources:
+  * ClaimService -> approver summary endpoints (submitted/pending/assigned counts)
+  * AnalyticsService -> admin totals (including totalPaidAmount)
+- Recent change: approver summary cards were moved into this component; the "Approver Works" sidebar link was removed.

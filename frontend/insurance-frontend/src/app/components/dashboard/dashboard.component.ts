@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
+import { ClaimService } from '../../services/claim.service';
 import { ApiService } from '../../services/api.service';
 import { ChangeDetectorRef } from '@angular/core';
 
@@ -24,6 +25,11 @@ export class DashboardComponent implements OnInit {
   pendingClaims = 0;
   rejectedClaims = 0;
   totalReimbursement = 0;
+  // Approver-specific summary
+  submittedCount = 0;
+  pendingCount = 0;
+  assignedCount = 0;
+  approverError = '';
   isLoading = true;
   userEmail: string | null = null;
   userFullName: string | null = null;
@@ -32,6 +38,7 @@ export class DashboardComponent implements OnInit {
   constructor(
     private auth: AuthService,
     private api: ApiService,
+    private claimService: ClaimService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -39,6 +46,30 @@ export class DashboardComponent implements OnInit {
     this.role = this.auth.role;
     this.username = this.auth.username;
     this.loadDashboard();
+    if (this.role === 'APPROVER') {
+      this.loadApproverSummary();
+    }
+  }
+
+  private loadApproverSummary(): void {
+    const approverId = Number(this.auth.userId);
+    forkJoin({
+      submitted: this.claimService.getClaimsByStatus('SUBMITTED'),
+      pending: this.claimService.getClaimsByStatus('PENDING'),
+      assigned: this.auth.userId ? this.claimService.getClaimsByApprover(approverId) : of({ data: [] }),
+    }).subscribe({
+      next: ({ submitted, pending, assigned }) => {
+        this.submittedCount = Array.isArray(submitted?.data) ? submitted.data.length : 0;
+        this.pendingCount = Array.isArray(pending?.data) ? pending.data.length : 0;
+        this.assignedCount = Array.isArray(assigned?.data) ? assigned.data.length : 0;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Approver summary load failed', error);
+        this.approverError = 'Unable to load approver summary.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   loadDashboard(): void {

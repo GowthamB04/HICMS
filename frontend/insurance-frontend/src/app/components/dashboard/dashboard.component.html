@@ -22,7 +22,7 @@
     </div>
   </div>
 
-  <div class="dashboard-metrics" *ngIf="role !== 'ADMIN'">
+  <div class="dashboard-metrics" *ngIf="role === 'POLICYHOLDER'">
     <article class="metric-card">
       <p>Total Policies</p>
       <strong>{{ totalPolicies }}</strong>
@@ -57,6 +57,25 @@
       <p>Total Reimbursement</p>
       <strong>{{ totalReimbursement | currency:'INR':'symbol':'1.0-0' }}</strong>
       <span>Amount received so far</span>
+    </article>
+  </div>
+
+  <!-- Approver summary (render directly on dashboard for approver users) -->
+  <div class="dashboard-metrics" *ngIf="role === 'APPROVER'">
+    <article class="metric-card">
+      <p>New Submitted</p>
+      <strong>{{ submittedCount }}</strong>
+      <span>Claims awaiting assignment to an approver</span>
+    </article>
+    <article class="metric-card">
+      <p>Pending Review</p>
+      <strong>{{ pendingCount }}</strong>
+      <span>Claims currently under review</span>
+    </article>
+    <article class="metric-card">
+      <p>Assigned To You</p>
+      <strong>{{ assignedCount }}</strong>
+      <span>Claims assigned to your account</span>
     </article>
   </div>
 

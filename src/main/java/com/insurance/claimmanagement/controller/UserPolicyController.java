@@ -2,10 +2,8 @@ package com.insurance.claimmanagement.controller;
 
 import com.insurance.claimmanagement.entity.UserPolicy;
 import com.insurance.claimmanagement.entity.User;
-import com.insurance.claimmanagement.entity.InsurancePolicy;
 import com.insurance.claimmanagement.service.UserPolicyService;
 import com.insurance.claimmanagement.service.UserService;
-import com.insurance.claimmanagement.service.InsurancePolicyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +25,6 @@ public class UserPolicyController {
     @Autowired
     private UserService userService;
     
-    @Autowired
-    private InsurancePolicyService policyService;
     
     // Get all user policies
     @GetMapping

@@ -14,7 +14,7 @@
       <a routerLink="/new-claim" routerLinkActive="active" *ngIf="auth.role === 'POLICYHOLDER'">New Claim</a>
       <a routerLink="/claims" routerLinkActive="active">{{ auth.role === 'POLICYHOLDER' ? 'My Claims' : 'Claims' }}</a>
       <a routerLink="/policies" routerLinkActive="active">{{ auth.role === 'POLICYHOLDER' ? 'My Policies' : 'Policies' }}</a>
-      <a routerLink="/approver/dashboard" routerLinkActive="active" *ngIf="auth.role === 'APPROVER'">Approver Works</a>
+      <!-- Approver Works tab removed: approver summary is now shown on dashboard -->
       <a routerLink="/approver/pending" routerLinkActive="active" *ngIf="auth.role === 'APPROVER'">Pending Claims</a>
       <a routerLink="/documents" routerLinkActive="active" *ngIf="auth.role !== 'ADMIN'">Documents</a>
       <a routerLink="/payments" routerLinkActive="active" *ngIf="auth.role === 'POLICYHOLDER' || auth.role === 'ADMIN'">Payments</a>

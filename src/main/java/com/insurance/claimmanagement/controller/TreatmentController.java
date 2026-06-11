@@ -2,7 +2,6 @@ package com.insurance.claimmanagement.controller;
 
 import com.insurance.claimmanagement.entity.Treatment;
 import com.insurance.claimmanagement.service.TreatmentService;
-import com.insurance.claimmanagement.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +19,6 @@ public class TreatmentController {
     @Autowired
     private TreatmentService treatmentService;
     
-    @Autowired
-    private UserService userService;
     
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllTreatments() {

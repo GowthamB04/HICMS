@@ -24,7 +24,7 @@ Base URL: /api/claims
    - Role: POLICYHOLDER
    - Body Example:
      {
-       "claimNumber": "CLM011",
+       "claimNumber": "CL-1781094831001",
        "claimAmount": 7500.0,
        "claimStatus": "PENDING",
        "user": { "userId": 2 },
@@ -44,7 +44,10 @@ Base URL: /api/claims
        "insurancePolicy": { "policyId": 1 },
        "assignedApprover": { "userId": 3 }
      }
-   - Notes:
+   - Important notes:
+     * Claim identifiers in the current seed/schema use the pattern `CL-1781094831XXX` (example: `CL-1781094831001`).
+     * Each claim must have four supporting documents: "Medical Bill", "Prescription", "Treatment Bill", and "Hospital Bill".
+     * Payments are not inserted in the main seed file; payment records are created separately (via migration or API). Analytics sum uses payments with `paymentStatus = 'COMPLETED'`.
      * When doctor/hospital data is provided inside treatment without IDs,
        the backend automatically creates matching Doctor and Hospital records.
      * The Treatment record will be linked to the new Doctor and Hospital via

@@ -1,0 +1,7 @@
+Analytics component
+===================
+
+- Location: frontend/insurance-frontend/src/app/components/analytics
+- Purpose: admin-level summary including `totalPaidAmount`, policy counts, and claim aggregates.
+- Note: `totalPaidAmount` is returned from the backend by summing payments with `paymentStatus = 'COMPLETED'`.
+- Uses `/api/admin/analytics` or equivalent admin analytics endpoint.

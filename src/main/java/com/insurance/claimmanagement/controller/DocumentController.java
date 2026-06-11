@@ -201,7 +201,7 @@ public class DocumentController {
                 // Try classpath static folder first
                 Path fileOnClasspath = Paths.get("src/main/resources/static" + path);
                 if (Files.exists(fileOnClasspath)) {
-                    Resource fileResource = new org.springframework.core.io.PathResource(fileOnClasspath.toAbsolutePath());
+                    Resource fileResource = new org.springframework.core.io.FileSystemResource(fileOnClasspath.toAbsolutePath().toFile());
                     String mime = Files.probeContentType(fileOnClasspath);
                     MediaType mediaType = mime != null ? MediaType.parseMediaType(mime) : MediaType.APPLICATION_OCTET_STREAM;
                     return ResponseEntity.ok().contentType(mediaType).body(fileResource);
@@ -210,7 +210,7 @@ public class DocumentController {
                 // Try as absolute/relative filesystem path (strip leading slash)
                 Path fsPath = Paths.get(path.substring(1));
                 if (Files.exists(fsPath)) {
-                    Resource fileResource = new org.springframework.core.io.PathResource(fsPath.toAbsolutePath());
+                    Resource fileResource = new org.springframework.core.io.FileSystemResource(fsPath.toAbsolutePath().toFile());
                     String mime = Files.probeContentType(fsPath);
                     MediaType mediaType = mime != null ? MediaType.parseMediaType(mime) : MediaType.APPLICATION_OCTET_STREAM;
                     return ResponseEntity.ok().contentType(mediaType).body(fileResource);

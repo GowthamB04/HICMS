@@ -2,7 +2,6 @@ package com.insurance.claimmanagement.service;
 
 import com.insurance.claimmanagement.entity.UserPolicy;
 import com.insurance.claimmanagement.entity.User;
-import com.insurance.claimmanagement.entity.InsurancePolicy;
 import java.util.List;
 import java.util.Optional;
 

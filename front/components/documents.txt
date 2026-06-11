@@ -1,0 +1,7 @@
+Documents component
+===================
+
+- Location: frontend/insurance-frontend/src/app/components/documents
+- Purpose: upload and list documents linked to claims.
+- Requirement: each claim in the seed expects four document types: Medical Bill, Prescription, Treatment Bill, Hospital Bill.
+- Upload endpoint: `/api/documents` (POST). Ensure the `claim` reference in body points to the claim's numeric `claimId`.

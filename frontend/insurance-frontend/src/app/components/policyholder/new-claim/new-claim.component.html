@@ -25,16 +25,16 @@
   </div>
 
   <div *ngIf="isLoading" class="status">Loading policy details...</div>
-  <div *ngIf="!isLoading && !policyList.length" class="status error">
-    No purchased policies found. Please contact support if this seems wrong.
+  <div *ngIf="!isLoading && !activePolicies.length" class="status error">
+    You have no active policies available to raise a claim. Please purchase or activate a policy before proceeding.
   </div>
 
-  <form *ngIf="!isLoading && policyList.length" class="wizard-form" novalidate>
+  <form *ngIf="!isLoading && activePolicies.length" class="wizard-form" novalidate>
     <div class="step-content" *ngIf="currentStep === 1">
       <p class="section-note">Select the policy under which you want to submit the claim.</p>
       <div class="policy-grid">
         <button
-          *ngFor="let policy of policyList"
+          *ngFor="let policy of activePolicies"
           type="button"
           class="policy-card"
           [class.selected]="policy.insurancePolicy?.policyId === selectedPolicyId"

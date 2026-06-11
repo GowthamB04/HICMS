@@ -1,0 +1,8 @@
+Payments component
+==================
+
+- Location: frontend/insurance-frontend/src/app/components/payments
+- Purpose: list payments and process payment status changes (ADMIN).
+- Seed note: the main seed `newone.sql` does not include payments; use `de.sql` or API to create payments for testing.
+- Analytics: `totalPaidAmount` is derived from payments where `paymentStatus = 'COMPLETED'`.
+- Uses `/api/payments` endpoints.

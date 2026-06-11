@@ -1,0 +1,6 @@
+Login component
+===============
+
+- Location: frontend/insurance-frontend/src/app/components/login
+- Purpose: authenticate users via Basic Auth and set role in `auth.service`.
+- After login, `AppComponent` renders role-specific dashboard cards (policyholder, approver, admin).
