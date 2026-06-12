@@ -78,13 +78,9 @@ CREATE TABLE `doctors` (
   `doctor_id` bigint NOT NULL AUTO_INCREMENT,
   `doctor_name` varchar(100) NOT NULL,
   `specialization` varchar(50) NOT NULL,
-  `qualification` varchar(50) NOT NULL,
-  `experience_years` int NOT NULL,
-  `hospital_id` bigint NOT NULL,
+  `registration_number` varchar(50) NOT NULL,
   PRIMARY KEY (`doctor_id`),
-  KEY `idx_hospital_id` (`hospital_id`),
-  KEY `idx_specialization` (`specialization`),
-  CONSTRAINT `doctors_ibfk_1` FOREIGN KEY (`hospital_id`) REFERENCES `hospitals` (`hospital_id`) ON DELETE CASCADE
+  KEY `idx_specialization` (`specialization`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -94,7 +90,13 @@ CREATE TABLE `doctors` (
 
 LOCK TABLES `doctors` WRITE;
 /*!40000 ALTER TABLE `doctors` DISABLE KEYS */;
-INSERT INTO `doctors` VALUES (1,'Dr. Sanjeev Saxena','General Medicine','MBBS, S.M.O.',22,4),(2,'Dr. Rajeshkumar Soni','Consultant Physician','DNB (General Medicine), MBBS',12,2),(3,'Prof. R. R. Kairy','Surgery','MS',25,3),(4,'Dr. Safi Zaman','Consultant','MBBS',6,3),(5,'Dr. Amit Singh','Neurology','MD',12,1),(6,'Dr. Neha Gupta','Gastroenterology','MD',8,1);
+INSERT INTO `doctors` (`doctor_id`,`doctor_name`,`specialization`,`registration_number`) VALUES
+(1,'Dr. Sanjeev Saxena','General Medicine','REG-1001'),
+(2,'Dr. Rajeshkumar Soni','Consultant Physician','REG-1002'),
+(3,'Prof. R. R. Kairy','Surgery','REG-1003'),
+(4,'Dr. Safi Zaman','Consultant','REG-1004'),
+(5,'Dr. Amit Singh','Neurology','REG-1005'),
+(6,'Dr. Neha Gupta','Gastroenterology','REG-1006');
 /*!40000 ALTER TABLE `doctors` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -138,9 +140,9 @@ DROP TABLE IF EXISTS `hospitals`;
 CREATE TABLE `hospitals` (
   `hospital_id` bigint NOT NULL AUTO_INCREMENT,
   `hospital_name` varchar(100) NOT NULL,
-  `hospital_type` varchar(50) NOT NULL,
   `address` varchar(255) NOT NULL,
-  `phone_number` varchar(20) NOT NULL,
+  `admission_date` date DEFAULT NULL,
+  `discharge_date` date DEFAULT NULL,
   PRIMARY KEY (`hospital_id`),
   KEY `idx_hospital_name` (`hospital_name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -152,7 +154,11 @@ CREATE TABLE `hospitals` (
 
 LOCK TABLES `hospitals` WRITE;
 /*!40000 ALTER TABLE `hospitals` DISABLE KEYS */;
-INSERT INTO `hospitals` VALUES (1,'Apollo Hospitals','Private','100 Health Street, New Delhi','9111111111'),(2,'Grace Nursing Home','Private','D-02 SH, Chhani Jakatnaka, Vadodara','9122222222'),(3,'Green Life Hospital Limited','Private','Plot 34, Clinical Area, Mumbai','9133333333'),(4,'Maharao Bhim Singh Hospital','Government','1-J-26, Vigyan Nagar, Kota','9144444444');
+INSERT INTO `hospitals` (`hospital_id`,`hospital_name`,`address`,`admission_date`,`discharge_date`) VALUES
+(1,'Apollo Hospitals','100 Health Street, New Delhi','2024-07-10','2024-07-18'),
+(2,'Grace Nursing Home','D-02 SH, Chhani Jakatnaka, Vadodara','2024-08-09','2024-08-16'),
+(3,'Green Life Hospital Limited','Plot 34, Clinical Area, Mumbai','2024-10-14','2024-10-20'),
+(4,'Maharao Bhim Singh Hospital','1-J-26, Vigyan Nagar, Kota','2024-10-25','2024-10-29');
 /*!40000 ALTER TABLE `hospitals` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -239,8 +245,8 @@ DROP TABLE IF EXISTS `treatments`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `treatments` (
   `treatment_id` bigint NOT NULL AUTO_INCREMENT,
+  `treatment_name` varchar(100) NOT NULL,
   `diagnosis` varchar(100) NOT NULL,
-  `treatment_description` text NOT NULL,
   `treatment_amount` double NOT NULL,
   `treatment_date` date NOT NULL,
   `user_id` bigint NOT NULL,
@@ -262,7 +268,19 @@ CREATE TABLE `treatments` (
 
 LOCK TABLES `treatments` WRITE;
 /*!40000 ALTER TABLE `treatments` DISABLE KEYS */;
-INSERT INTO `treatments` VALUES (1,'Anxiety / Gastric','Observation, Capsule Rozavel, Tablet Ambulax prescriptions',1500,'2024-07-17',4,1,4),(2,'General Checkup','Routine post-gastric diagnostic follow-up',500,'2024-08-15',4,1,4),(3,'Indoor Hospitalization','Bed Charge, Nursing and Doctor Visit Charges',11800,'2024-10-14',5,2,2),(4,'Follow-up Consultation','Post discharge physical assessment review',800,'2024-10-25',5,2,2),(5,'Implant Removal Surgery','Surgeon fee, Anesthetist and Theatre Charge services',109908.45,'2025-05-11',6,3,3),(6,'Post-Op Dressing','Minor clinical management and service charges',2500,'2025-05-18',6,4,3),(7,'Inpatient Emergency Care','Emergency Room Rent, Pharmacy and Consumables bill',75567.32,'2025-03-20',7,5,1),(8,'Cardiology Assessment','ECG diagnostics and critical monitoring records',6200,'2025-05-01',8,5,1),(9,'Orthopedics Evaluation','Joint mobility assessment and scan checks',4500,'2025-05-10',8,2,2),(10,'Neurology Consultation','Chronic migraine diagnosis review',3000,'2025-05-15',9,5,1),(11,'Gastroenterology Check','Acidity and upper tract evaluation',2500,'2025-05-20',9,6,1),(12,'General Medical Diagnosis','General observation clinic services billing',1200,'2025-06-15',4,1,4);
+INSERT INTO `treatments` (`treatment_id`,`treatment_name`,`diagnosis`,`treatment_amount`,`treatment_date`,`user_id`,`doctor_id`,`hospital_id`) VALUES
+(1,'Anxiety Care','Anxiety / Gastric',1500,'2024-07-17',4,1,4),
+(2,'General Checkup','General Checkup',500,'2024-08-15',4,1,4),
+(3,'Indoor Hospitalization','Indoor Hospitalization',11800,'2024-10-14',5,2,2),
+(4,'Follow-up Consultation','Follow-up Consultation',800,'2024-10-25',5,2,2),
+(5,'Implant Removal','Implant Removal Surgery',109908.45,'2025-05-11',6,3,3),
+(6,'Post-Op Dressing','Post-Op Dressing',2500,'2025-05-18',6,4,3),
+(7,'Inpatient Emergency','Inpatient Emergency Care',75567.32,'2025-03-20',7,5,1),
+(8,'Cardiology Assessment','Cardiology Assessment',6200,'2025-05-01',8,5,1),
+(9,'Orthopedics Evaluation','Orthopedics Evaluation',4500,'2025-05-10',8,2,2),
+(10,'Neurology Consultation','Neurology Consultation',3000,'2025-05-15',9,5,1),
+(11,'Gastroenterology Check','Gastroenterology Check',2500,'2025-05-20',9,6,1),
+(12,'General Medical Diagnosis','General Medical Diagnosis',1200,'2025-06-15',4,1,4);
 /*!40000 ALTER TABLE `treatments` ENABLE KEYS */;
 UNLOCK TABLES;
 
