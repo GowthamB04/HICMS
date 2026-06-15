@@ -1,9 +1,7 @@
 package com.insurance.claimmanagement.entity;
 
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "hospitals")
@@ -16,34 +14,24 @@ public class Hospital {
     @Column(nullable = false, length = 100)
     private String hospitalName;
     
-    @Column(nullable = false, length = 50)
-    private String hospitalType; // Government, Private, Non-Profit
-    
     @Column(nullable = false, length = 255)
     private String address;
     
-    @Column(nullable = false, length = 20)
-    private String phoneNumber;
+    @Column(name = "admission_date")
+    private LocalDate admissionDate;
     
-    // One Hospital has Many Doctors
-    @OneToMany(mappedBy = "hospital", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private List<Doctor> doctors = new ArrayList<>();
-    
-    // One Hospital has Many Treatments
-    @OneToMany(mappedBy = "hospital", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private List<Treatment> treatments = new ArrayList<>();
+    @Column(name = "discharge_date")
+    private LocalDate dischargeDate;
     
     // Constructor
     public Hospital() {
     }
     
-    public Hospital(String hospitalName, String hospitalType, String address, String phoneNumber) {
+    public Hospital(String hospitalName, String address, LocalDate admissionDate, LocalDate dischargeDate) {
         this.hospitalName = hospitalName;
-        this.hospitalType = hospitalType;
         this.address = address;
-        this.phoneNumber = phoneNumber;
+        this.admissionDate = admissionDate;
+        this.dischargeDate = dischargeDate;
     }
     
     // Getters and Setters
@@ -63,14 +51,6 @@ public class Hospital {
         this.hospitalName = hospitalName;
     }
     
-    public String getHospitalType() {
-        return hospitalType;
-    }
-    
-    public void setHospitalType(String hospitalType) {
-        this.hospitalType = hospitalType;
-    }
-    
     public String getAddress() {
         return address;
     }
@@ -79,28 +59,20 @@ public class Hospital {
         this.address = address;
     }
     
-    public String getPhoneNumber() {
-        return phoneNumber;
+    public LocalDate getAdmissionDate() {
+        return admissionDate;
     }
     
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
+    public void setAdmissionDate(LocalDate admissionDate) {
+        this.admissionDate = admissionDate;
     }
     
-    public List<Doctor> getDoctors() {
-        return doctors;
+    public LocalDate getDischargeDate() {
+        return dischargeDate;
     }
     
-    public void setDoctors(List<Doctor> doctors) {
-        this.doctors = doctors;
-    }
-    
-    public List<Treatment> getTreatments() {
-        return treatments;
-    }
-    
-    public void setTreatments(List<Treatment> treatments) {
-        this.treatments = treatments;
+    public void setDischargeDate(LocalDate dischargeDate) {
+        this.dischargeDate = dischargeDate;
     }
     
     @Override
@@ -108,8 +80,9 @@ public class Hospital {
         return "Hospital{" +
                 "hospitalId=" + hospitalId +
                 ", hospitalName='" + hospitalName + '\'' +
-                ", hospitalType='" + hospitalType + '\'' +
                 ", address='" + address + '\'' +
+                ", admissionDate=" + admissionDate +
+                ", dischargeDate=" + dischargeDate +
                 '}';
     }
 }

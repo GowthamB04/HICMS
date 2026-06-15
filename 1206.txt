@@ -1,0 +1,881 @@
+================================================================================
+HEALTH INSURANCE CLAIM MANAGEMENT SYSTEM
+Frontend and Backend Communication Architecture
+Documentation Date: June 12, 2026
+================================================================================
+
+TABLE OF CONTENTS
+1. Overview
+2. Communication Flow
+3. Key Files and Their Purposes
+4. Files Modified/Created
+5. How to Link Frontend & Backend
+6. Running the Application
+7. Architecture Diagram
+
+================================================================================
+1. OVERVIEW
+================================================================================
+
+This is a full-stack web application with:
+- BACKEND: Spring Boot REST API (Java 17, Spring Data JPA, MySQL, Hibernate)
+- FRONTEND: Angular 21 Single Page Application
+- DATABASE: MySQL 8.0
+- PORT (Backend): 8989
+- PORT (Frontend dev): 4200
+- COMMUNICATION: HTTP/REST with Basic Authentication + JSON payloads
+
+The frontend and backend communicate via HTTP/HTTPS over REST API endpoints
+prefixed with /api. During development, the Angular dev server proxies all
+/api requests to the backend running on port 8989.
+
+================================================================================
+2. COMMUNICATION FLOW
+================================================================================
+
+STEP-BY-STEP DATA FLOW:
+
+   User clicks button in Angular component
+          ↓
+   Component calls ApiService method (e.g., this.apiService.get('/treatments'))
+          ↓
+   ApiService prepends baseUrl='/api' → '/api/treatments'
+          ↓
+   ApiService adds Basic Auth header from AuthService
+          ↓
+   HttpClient sends HTTP request to browser origin (http://localhost:4200)
+          ↓
+   Angular dev server proxy (proxy.conf.json) intercepts /api/treatments
+          ↓
+   Proxy forwards request to backend: http://localhost:8989/api/treatments
+          ↓
+   Backend TreatmentController receives GET request at endpoint /api/treatments
+          ↓
+   Controller validates Basic Auth credentials via Spring Security
+          ↓
+   Service layer calls Repository (JPA) to query MySQL database
+          ↓
+   Database returns data → Service → Controller builds JSON response
+          ↓
+   Controller returns ResponseEntity with JSON: { message, status, data }
+          ↓
+   Proxy forwards response back to browser
+          ↓
+   ApiService Observable emits data to component
+          ↓
+   Component receives data and renders it in the UI
+
+
+AUTHENTICATION FLOW:
+
+   User enters username/password in login form
+          ↓
+   LoginComponent calls ApiService.post('/auth/login', {username, password})
+          ↓
+   Backend returns: { message, status, token, role, userId, fullName, email }
+          ↓
+   AuthService stores credentials in localStorage/sessionStorage as Base64
+          ↓
+   For all subsequent requests, ApiService reads credentials and adds header:
+       Authorization: Basic <base64(username:password)>
+          ↓
+   Backend Spring Security validates this header on each request
+          ↓
+   If valid, request proceeds; if invalid, returns 401 Unauthorized
+
+
+================================================================================
+3. KEY FILES AND THEIR PURPOSES
+================================================================================
+
+BACKEND FILES:
+═════════════════════════════════════════════════════════════════════════════
+
+📄 src/main/resources/application.properties
+   LOCATION: src/main/resources/application.properties
+   PURPOSE: Spring Boot configuration file
+   KEY SETTINGS:
+     - server.port=8989                    (Backend runs on port 8989)
+     - spring.datasource.url=jdbc:mysql://localhost:3306/health_db?...
+                             &allowPublicKeyRetrieval=true
+       → Connects to MySQL database 'health_db' on localhost:3306
+       → allowPublicKeyRetrieval=true: FIX applied (June 12, 2026)
+                                       because MySQL Connector/J blocks
+                                       public-key retrieval by default
+     - spring.jpa.hibernate.ddl-auto=update  (Auto-update schema)
+     - spring.jpa.show-sql=true              (Log SQL queries for debugging)
+
+📄 src/main/java/com/insurance/claimmanagement/HealthInsuranceClaimManagementApplication.java
+   LOCATION: src/main/java/com/insurance/claimmanagement/HealthInsuranceClaimManagementApplication.java
+   PURPOSE: Main Spring Boot application entry point
+   KEY CODE:
+     @SpringBootApplication
+     public class HealthInsuranceClaimManagementApplication {
+         public static void main(String[] args) {
+             SpringApplication.run(HealthInsuranceClaimManagementApplication.class, args);
+         }
+     }
+   USE: Bootstraps the entire Spring Boot application when run
+
+📄 src/main/java/com/insurance/claimmanagement/config/WebConfig.java (optional)
+   LOCATION: src/main/java/com/insurance/claimmanagement/config/WebConfig.java
+   PURPOSE: Global CORS configuration (if present)
+   KEY CODE EXAMPLE:
+     @Configuration
+     public class WebConfig implements WebMvcConfigurer {
+         @Override
+         public void addCorsMappings(CorsRegistry registry) {
+             registry.addMapping("/api/**")
+                     .allowedOrigins("http://localhost:4200")
+                     .allowCredentials(true)
+                     .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH");
+         }
+     }
+   USE: Enables CORS (Cross-Origin Resource Sharing) globally so that
+        the frontend (port 4200) can make requests to the backend (port 8989).
+        NOTE: This is not strictly required if using Angular dev proxy,
+              but recommended for production builds.
+
+📄 src/main/java/com/insurance/claimmanagement/controller/TreatmentController.java
+   LOCATION: src/main/java/com/insurance/claimmanagement/controller/TreatmentController.java
+   PURPOSE: REST controller handling all /api/treatments endpoints
+   KEY ENDPOINTS:
+     GET    /api/treatments            → Fetch all treatments
+     GET    /api/treatments/{id}       → Fetch treatment by ID
+     POST   /api/treatments            → Create new treatment
+     PUT    /api/treatments/{id}       → Update treatment
+     PATCH  /api/treatments/{id}       → Partially update treatment
+     DELETE /api/treatments/{id}       → Delete treatment
+   
+   KEY CODE EXAMPLE:
+     @RestController
+     @RequestMapping("/api/treatments")
+     @CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
+     public class TreatmentController {
+         @Autowired
+         private TreatmentService treatmentService;
+         
+         @GetMapping
+         public ResponseEntity<Map<String, Object>> getAllTreatments() {
+             try {
+                 List<Treatment> treatments = treatmentService.getAllTreatments();
+                 Map<String, Object> response = new HashMap<>();
+                 response.put("message", "Treatments fetched successfully");
+                 response.put("status", true);
+                 response.put("data", treatments);
+                 return ResponseEntity.ok(response);
+             } catch (Exception e) {
+                 Map<String, Object> response = new HashMap<>();
+                 response.put("message", "Error fetching treatments: " + e.getMessage());
+                 response.put("status", false);
+                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+             }
+         }
+     }
+   
+   USE: 
+   - @RestController: Marks class as a REST API endpoint handler
+   - @RequestMapping("/api/treatments"): All methods respond to /api/treatments base path
+   - @CrossOrigin(...): Allows frontend on localhost:4200 to access these endpoints
+   - @GetMapping, @PostMapping, @PutMapping, @DeleteMapping: HTTP method routing
+   - ResponseEntity<Map>: Returns JSON response with standardized format
+
+📄 src/main/java/com/insurance/claimmanagement/service/TreatmentService.java
+   LOCATION: src/main/java/com/insurance/claimmanagement/service/TreatmentService.java
+   PURPOSE: Business logic layer for treatments
+   KEY METHODS:
+     - getAllTreatments()
+     - getTreatmentById(Long id)
+     - saveTreatment(Treatment treatment)
+     - updateTreatment(Treatment treatment)
+     - deleteTreatment(Long id)
+   USE: Contains database queries and business rules; controllers call these
+
+📄 src/main/java/com/insurance/claimmanagement/repository/TreatmentRepository.java
+   LOCATION: src/main/java/com/insurance/claimmanagement/repository/TreatmentRepository.java
+   PURPOSE: JPA data access layer
+   KEY CODE:
+     @Repository
+     public interface TreatmentRepository extends JpaRepository<Treatment, Long> {
+     }
+   USE: Provides CRUD operations (Create, Read, Update, Delete) on Treatment entity
+        Automatically generates SQL queries for database operations
+
+SIMILAR CONTROLLERS/SERVICES/REPOSITORIES exist for:
+   - Doctor (DoctorController, DoctorService, DoctorRepository)
+   - Hospital (HospitalController, HospitalService, HospitalRepository)
+   - Claim (ClaimController, ClaimService, ClaimRepository)
+   - Policy (PolicyController, PolicyService, PolicyRepository)
+   - And others...
+
+OTHER KEY BACKEND FILES:
+   - src/main/java/com/insurance/claimmanagement/entity/:
+     Contains JPA entity classes (Treatment.java, Doctor.java, Hospital.java, etc.)
+     Each entity maps to a database table via Hibernate ORM
+
+   - health_db_initialization.sql:
+     SQL script to initialize the database with tables and seed data
+     Updated: June 12, 2026 (30 insertions, 12 deletions)
+
+
+FRONTEND FILES:
+═════════════════════════════════════════════════════════════════════════════
+
+📄 frontend/insurance-frontend/proxy.conf.json
+   LOCATION: frontend/insurance-frontend/proxy.conf.json
+   PURPOSE: Angular dev server proxy configuration
+   KEY CODE:
+     {
+       "/api": {
+         "target": "http://localhost:8989",
+         "secure": false,
+         "changeOrigin": true,
+         "logLevel": "debug"
+       }
+     }
+   USE: 
+   - Maps /api requests to backend at http://localhost:8989
+   - secure: false = allows HTTP (no HTTPS verification during dev)
+   - changeOrigin: true = modifies request origin to backend domain
+   - logLevel: debug = prints proxy logs to console
+   
+   HOW IT WORKS:
+     Frontend browser call: http://localhost:4200/api/treatments
+     Proxy intercepts and forwards to: http://localhost:8989/api/treatments
+     Backend responds, proxy passes response back to frontend
+     Frontend JavaScript receives the response
+
+📄 frontend/insurance-frontend/src/app/services/api.service.ts
+   LOCATION: frontend/insurance-frontend/src/app/services/api.service.ts
+   PURPOSE: HTTP API client service
+   KEY CODE:
+   
+     @Injectable({ providedIn: 'root' })
+     export class ApiService {
+       private baseUrl = '/api';
+     
+       constructor(private http: HttpClient, private auth: AuthService) {}
+     
+       private getAuthHeaders(): HttpHeaders {
+         const credentials = this.auth.credentials;
+         if (credentials) {
+           console.log('Sending API request with Basic Auth credentials');
+           return new HttpHeaders({
+             Authorization: `Basic ${credentials}`,
+             'Content-Type': 'application/json',
+           });
+         }
+         console.warn('No credentials found for API request');
+         return new HttpHeaders({
+           'Content-Type': 'application/json',
+         });
+       }
+     
+       get<T>(path: string): Observable<T> {
+         const headers = this.getAuthHeaders();
+         console.log('GET request to:', this.baseUrl + path);
+         return this.http.get<T>(`${this.baseUrl}${path}`, { headers });
+       }
+     
+       post<T>(path: string, body: any): Observable<T> {
+         const headers = this.getAuthHeaders();
+         console.log('POST request to:', this.baseUrl + path);
+         return this.http.post<T>(`${this.baseUrl}${path}`, body, { headers });
+       }
+     
+       put<T>(path: string, body: any): Observable<T> {
+         const headers = this.getAuthHeaders();
+         console.log('PUT request to:', this.baseUrl + path);
+         return this.http.put<T>(`${this.baseUrl}${path}`, body, { headers });
+       }
+     
+       delete<T>(path: string): Observable<T> {
+         const headers = this.getAuthHeaders();
+         console.log('DELETE request to:', this.baseUrl + path);
+         return this.http.delete<T>(`${this.baseUrl}${path}`, { headers });
+       }
+     }
+   
+   USE:
+   - Wraps Angular HttpClient to centralize API communication
+   - baseUrl = '/api': All API calls start with /api (handled by proxy)
+   - getAuthHeaders(): Reads stored credentials and adds Authorization header
+   - get/post/put/delete: Helper methods for CRUD operations
+   - Observable<T>: RxJS observables for async HTTP calls
+   
+   EXAMPLE USAGE IN COMPONENT:
+     this.apiService.get<Treatment[]>('/treatments').subscribe(
+       (response) => {
+         console.log(response.data);  // Handle response
+       },
+       (error) => {
+         console.error(error);        // Handle error
+       }
+     );
+
+📄 frontend/insurance-frontend/src/app/services/auth.service.ts
+   LOCATION: frontend/insurance-frontend/src/app/services/auth.service.ts
+   PURPOSE: Authentication state management
+   KEY CODE:
+   
+     @Injectable({ providedIn: 'root' })
+     export class AuthService {
+       private tokenKey = 'auth_token';
+       private roleKey = 'auth_role';
+       private usernameKey = 'auth_username';
+       // ... more keys ...
+     
+       get credentials(): string | null {
+         return sessionStorage.getItem('credentials') ?? 
+                localStorage.getItem('auth_credentials');
+       }
+     
+       setCredentials(username: string, password: string): void {
+         const encoded = btoa(`${username}:${password}`);
+         sessionStorage.setItem('credentials', encoded);
+         localStorage.setItem('auth_credentials', encoded);
+       }
+     
+       setToken(token: string): void {
+         localStorage.setItem(this.tokenKey, token);
+       }
+     
+       setRole(role: string): void {
+         localStorage.setItem(this.roleKey, role);
+       }
+     
+       clearToken(): void {
+         localStorage.removeItem(this.tokenKey);
+         localStorage.removeItem(this.roleKey);
+         localStorage.removeItem(this.usernameKey);
+         // ... clears all auth data ...
+         sessionStorage.removeItem('credentials');
+       }
+     
+       isAuthenticated(): boolean {
+         return !!this.token;
+       }
+     }
+   
+   USE:
+   - Stores user authentication data (credentials, token, role, etc.) in localStorage
+   - ApiService reads `credentials` property to add Authorization header
+   - clearToken(): Called during logout to remove all auth data
+   - SessionStorage is checked first (temporary), then localStorage (persistent)
+   
+   WHY TWO STORAGE LOCATIONS?
+     - sessionStorage: Cleared when browser tab closes (more secure, per-session)
+     - localStorage: Persists across browser sessions (remember me functionality)
+     - Check sessionStorage first; fall back to localStorage for "remember me"
+
+📄 frontend/insurance-frontend/src/app/components/login/login.component.ts
+   LOCATION: frontend/insurance-frontend/src/app/components/login/login.component.ts
+   PURPOSE: User login page
+   KEY CODE FLOW:
+   
+     onLogin(): void {
+       const { username, password } = this.form.value;
+       this.apiService.post('/auth/login', { username, password }).subscribe(
+         (response: any) => {
+           if (response.status) {
+             this.authService.setCredentials(username, password);
+             this.authService.setToken(response.token);
+             this.authService.setRole(response.role);
+             this.authService.setUserId(response.userId);
+             this.authService.setFullName(response.fullName);
+             this.authService.setEmail(response.email);
+             this.router.navigate(['/dashboard']);
+           } else {
+             this.errorMessage = response.message;
+           }
+         },
+         (error) => {
+           this.errorMessage = 'Login failed';
+         }
+       );
+     }
+   
+   USE:
+   - Calls backend /api/auth/login endpoint with username/password
+   - If successful, stores credentials/token/role in AuthService
+   - Redirects to dashboard
+   - If failed, displays error message
+
+📄 frontend/insurance-frontend/src/app/components/treatments/treatments.component.ts
+   LOCATION: frontend/insurance-frontend/src/app/components/treatments/treatments.component.ts
+   PURPOSE: Treatment list page
+   KEY CODE EXAMPLE:
+   
+     export class TreatmentsComponent implements OnInit {
+       treatments: Treatment[] = [];
+       constructor(private apiService: ApiService) {}
+     
+       ngOnInit(): void {
+         this.loadTreatments();
+       }
+     
+       loadTreatments(): void {
+         this.apiService.get('/treatments').subscribe(
+           (response: any) => {
+             if (response.status) {
+               this.treatments = response.data;
+             }
+           },
+           (error) => {
+             console.error('Error loading treatments:', error);
+           }
+         );
+       }
+     }
+   
+   USE:
+   - On component load (ngOnInit), calls ApiService.get('/treatments')
+   - Receives JSON response { message, status, data: [...] }
+   - Extracts data and stores in treatments array
+   - Template uses *ngFor to render treatment list
+
+📄 frontend/insurance-frontend/angular.json
+   LOCATION: frontend/insurance-frontend/angular.json
+   PURPOSE: Angular CLI configuration for dev server
+   KEY SECTION:
+     "serve": {
+       "builder": "@angular-devkit/build-angular:dev-server",
+       "configurations": {
+         "development": {
+           "proxyConfig": "proxy.conf.json",
+           ...
+         }
+       }
+     }
+   USE: Tells Angular dev server to use proxy.conf.json when running ng serve
+
+📄 frontend/insurance-frontend/environments/environment.ts
+   LOCATION: frontend/insurance-frontend/src/environments/environment.ts
+   PURPOSE: Environment-specific configuration
+   KEY CODE:
+     export const environment = {
+       production: false,
+       apiUrl: '/api'
+     };
+   USE: Can be used by components to reference the API base URL
+
+SIMILAR FRONTEND COMPONENTS exist for:
+   - Doctors (doctors.component.ts, doctors.component.html)
+   - Hospitals (hospitals.component.ts, hospitals.component.html)
+   - Claims (claims.component.ts, claims.component.html)
+   - Policies (policies.component.ts, policies.component.html)
+   - Dashboard (dashboard.component.ts, dashboard.component.html)
+   - And others...
+   
+   PATTERN: Each component calls ApiService.get('/resource') on init,
+            receives JSON, stores in local array, renders with *ngFor
+
+
+================================================================================
+4. FILES MODIFIED/CREATED (DOCUMENTED CHANGES)
+================================================================================
+
+Changed on: June 12, 2026
+
+1. src/main/resources/application.properties
+   CHANGE: Added &allowPublicKeyRetrieval=true to JDBC URL
+   BEFORE: spring.datasource.url=jdbc:mysql://localhost:3306/health_db?createDatabaseIfNotExist=true&useSSL=false
+   AFTER:  spring.datasource.url=jdbc:mysql://localhost:3306/health_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+   REASON: MySQL Connector/J v9.7 blocks public-key retrieval by default for security.
+           This flag explicitly allows it. Error was:
+           "java.sql.SQLNonTransientConnectionException: Public Key Retrieval is not allowed"
+   IMPACT: Backend can now connect to MySQL successfully during startup
+
+2. health_db_initialization.sql
+   CHANGE: Updated database schema and seed data
+   STATS: 30 insertions, 12 deletions
+   REASON: Database schema updates (added/modified columns, constraints, etc.)
+   IMPACT: When running the SQL script, database tables are created/updated with latest schema
+
+3. (Optional) Created/Modified WebConfig.java
+   LOCATION: src/main/java/com/insurance/claimmanagement/config/WebConfig.java
+   PURPOSE: Global CORS configuration
+   STATUS: Can be commented out or left as-is
+   WHY WORKS ANYWAY: Angular dev proxy + @CrossOrigin on individual controllers
+                     still enable frontend-backend communication
+
+
+COMMITS PUSHED TO GITHUB:
+   Repository: https://github.com/GowthamB04/Project_Final.git
+   Branch: main
+   
+   Commit 1: 4132d22 "Allow MySQL public key retrieval in JDBC URL"
+   Commit 2: 62c6702 "Update health_db_initialization.sql"
+
+================================================================================
+5. HOW TO LINK FRONTEND & BACKEND
+================================================================================
+
+METHOD 1: DURING DEVELOPMENT (Using Angular Dev Proxy)
+═════════════════════════════════════════════════════════════════════════════
+
+Step 1: Start the BACKEND
+   - Navigate to project root:
+     cd "Health-Insurance--Claim-Management-System-main"
+   
+   - Build (if needed):
+     mvn clean package -DskipTests
+     or
+     .\mvnw.cmd clean package -DskipTests
+   
+   - Run:
+     java -jar target\health-insurance-claim-management-0.0.1-SNAPSHOT.jar
+     or right-click on: src/main/java/.../HealthInsuranceClaimManagementApplication.java → Run
+   
+   - Verify: Backend should start on http://localhost:8989
+     Look for: "Started HealthInsuranceClaimManagementApplication in X seconds"
+
+Step 2: Start the FRONTEND (in a NEW terminal)
+   - Navigate to frontend directory:
+     cd frontend\insurance-frontend
+   
+   - Install dependencies (if not already done):
+     npm install
+   
+   - Start dev server:
+     ng serve --open
+     or
+     npm start
+   
+   - Verify: Frontend runs on http://localhost:4200
+     AutoOpen should open browser to http://localhost:4200
+
+Step 3: How the PROXY links them:
+   - You type URL or click in app: http://localhost:4200/api/treatments
+   - Browser makes request to localhost:4200 (same origin)
+   - Angular dev server intercepts /api/* paths
+   - Proxy.conf.json redirects to: http://localhost:8989/api/treatments
+   - Backend responds with JSON
+   - Proxy returns response to frontend
+   - Frontend JavaScript receives JSON in ApiService Observable
+
+Step 4: Network Activity
+   - Open Chrome DevTools → Network tab
+   - Make any API call (login, fetch treatments, etc.)
+   - You should see requests to /api/... 
+   - Request payload: What you sent to backend
+   - Response: JSON from backend { message, status, data }
+
+
+METHOD 2: PRODUCTION BUILD (No Proxy Needed)
+═════════════════════════════════════════════════════════════════════════════
+
+Step 1: Build the FRONTEND as a static site:
+   cd frontend\insurance-frontend
+   ng build --configuration production
+
+   Output: frontend/insurance-frontend/dist/insurance-frontend/ (static HTML/JS/CSS)
+
+Step 2: Copy frontend build to backend resources:
+   Copy dist/insurance-frontend/* → src/main/resources/static/
+
+Step 3: Update backend to serve frontend:
+   No code changes needed! Spring Boot serves /index.html as default page.
+   All non-/api requests fall back to /index.html (for Angular routing).
+
+Step 4: Build and run backend:
+   mvn clean package -DskipTests
+   java -jar target\health-insurance-claim-management-0.0.1-SNAPSHOT.jar
+
+Step 5: Access application:
+   http://localhost:8989  (server now hosts both frontend + backend)
+   No proxy, no CORS issues, no separate dev server needed
+
+Step 6: Why it works:
+   - Frontend and backend are both served from same host:port (localhost:8989)
+   - Same-origin policy means no CORS needed
+   - All files are on same server
+   - /api/* → backend API
+   - /* → Angular app (static files + SPA routing)
+
+
+METHOD 3: CONFIGURE FOR DIFFERENT BACKEND URL
+═════════════════════════════════════════════════════════════════════════════
+
+If you want Angular to point to a different backend URL:
+
+Step 1: Modify src/app/services/api.service.ts:
+   Change:  private baseUrl = '/api';
+   To:      private baseUrl = 'http://your-backend-url.com/api';
+
+Step 2: Remove proxy.conf.json from angular.json if not needed
+
+Step 3: Ensure backend has CORS enabled in WebConfig.java:
+   registry.addMapping("/api/**")
+           .allowedOrigins("http://your-frontend-url.com")
+           .allowCredentials(true)
+           .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH");
+
+Step 4: Start frontend and backend on separate hosts/ports
+   Frontend: http://localhost:4200
+   Backend: http://your-backend-url.com
+
+
+================================================================================
+6. RUNNING THE APPLICATION
+================================================================================
+
+QUICKSTART (Development):
+═════════════════════════════════════════════════════════════════════════════
+
+Terminal 1 - START BACKEND:
+   cd "Health-Insurance--Claim-Management-System-main\Health-Insurance--Claim-Management-System-main"
+   .\mvnw.cmd clean package -DskipTests
+   java -jar target\health-insurance-claim-management-0.0.1-SNAPSHOT.jar
+   
+   Expected output:
+     Started HealthInsuranceClaimManagementApplication in X seconds
+     Tomcat started on port 8989
+
+Terminal 2 - START FRONTEND:
+   cd "frontend\insurance-frontend"
+   npm install  (if first time)
+   ng serve --open
+   
+   Expected output:
+     ✔ Compiled successfully.
+     ⠸ Bundled 1 bundle
+     ⠙ Building
+     Application bundle generated successfully in X ms.
+     
+     Ready in X ms
+     Browser automatically opens to http://localhost:4200
+
+Step 3 - LOGIN:
+   When page loads, login with credentials (check health_db_initialization.sql
+   for seed data or create a user in the database)
+
+TROUBLESHOOTING:
+═════════════════════════════════════════════════════════════════════════════
+
+Issue: "Port 8989 already in use"
+   Solution: Kill process on that port or change server.port in application.properties
+
+Issue: "Connection refused: connect to localhost:8989"
+   Solution: Make sure backend is running (check Terminal 1 output)
+
+Issue: "No credentials found for API request" (console warning)
+   Solution: User not logged in yet. Call login endpoint first.
+
+Issue: "CORS error in browser console"
+   Solution: 
+   - Check that proxy.conf.json is active (verify in angular.json)
+   - Or add @CrossOrigin annotation to controller
+   - Or enable WebConfig CORS configuration
+
+Issue: "Proxy didn't intercept /api request"
+   Solution: 
+   - Make sure ng serve is running (not npm start without proxy)
+   - Restart dev server after proxy changes
+   - Check terminal output for proxy debug logs
+
+
+================================================================================
+7. ARCHITECTURE DIAGRAM
+================================================================================
+
+DEVELOPMENT SETUP (with Proxy):
+═════════════════════════════════════════════════════════════════════════════
+
+    ┌─────────────────────────────────────────────────────────────┐
+    │                   USER'S WEB BROWSER                        │
+    │                  (http://localhost:4200)                    │
+    │              ┌──────────────────────────────┐               │
+    │              │  Angular Frontend App        │               │
+    │              │  (Components, Services)      │               │
+    │              └──────────────┬───────────────┘               │
+    │                             │                               │
+    └─────────────────────────────┼───────────────────────────────┘
+                                  │
+                    HTTP Request to /api/treatments
+                                  │
+                                  ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │          Angular Dev Server (port 4200)                     │
+    │  ┌──────────────────────────────────────────────────────┐   │
+    │  │     proxy.conf.json Configuration                    │   │
+    │  │  /api → http://localhost:8989                       │   │
+    │  └──────────────────────────────────────────────────────┘   │
+    │  Intercepts /api/* requests and forwards to backend    │
+    └─────────────────────────────────────────────────────────────┘
+                                  │
+                    Proxy forwards to /api/treatments
+                   at http://localhost:8989
+                                  │
+                                  ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │              Spring Boot Backend (port 8989)                │
+    │  ┌──────────────────────────────────────────────────────┐   │
+    │  │  TreatmentController                                 │   │
+    │  │  @GetMapping("/api/treatments")                      │   │
+    │  │  @CrossOrigin(origins = "http://localhost:4200")    │   │
+    │  └──────────────────────────────────────────────────────┘   │
+    │                         ▼                                   │
+    │  ┌──────────────────────────────────────────────────────┐   │
+    │  │  Spring Security: Validate Basic Auth Header        │   │
+    │  └──────────────────────────────────────────────────────┘   │
+    │                         ▼                                   │
+    │  ┌──────────────────────────────────────────────────────┐   │
+    │  │  TreatmentService: Business Logic                    │   │
+    │  │  - getTreatments()                                   │   │
+    │  │  - Calls TreatmentRepository                         │   │
+    │  └──────────────────────────────────────────────────────┘   │
+    │                         ▼                                   │
+    │  ┌──────────────────────────────────────────────────────┐   │
+    │  │  JPA/Hibernate: Query Mapping                        │   │
+    │  │  - TreatmentRepository extends JpaRepository         │   │
+    │  │  - Generates SQL: SELECT * FROM treatments          │   │
+    │  └──────────────────────────────────────────────────────┘   │
+    │                         ▼                                   │
+    │  ┌──────────────────────────────────────────────────────┐   │
+    │  │  MySQL Database (localhost:3306/health_db)           │   │
+    │  │  - treatments table                                  │   │
+    │  │  - doctors table                                     │   │
+    │  │ - hospitals table                                    │   │
+    │  │  - (other tables...)                                 │   │
+    │  └──────────────────────────────────────────────────────┘   │
+    └─────────────────────────────────────────────────────────────┘
+                                  │
+                    Database returns rows
+                                  │
+                    Service builds Java objects
+                                  │
+              Controller builds JSON response
+          { message: "...", status: true, data: [...] }
+                                  │
+                    HTTP response to proxy
+                                  │
+    ┌─────────────────────────────────────────────────────────────┐
+    │          Angular Dev Server Proxy (port 4200)               │
+    │                  Forwards response to browser               │
+    └─────────────────────────────────────────────────────────────┘
+                                  │
+                    ▼
+    ┌─────────────────────────────────────────────────────────────┐
+    │ Browser receives JSON response                              │
+    │                                                             │
+    │ ApiService Observable emits data                           │
+    │ Component subscribes and receives data                     │
+    │ Component updates local property (treatments = data)       │
+    │ Angular detects change → re-renders template               │
+    │ User sees treatment list in browser                        │
+    └─────────────────────────────────────────────────────────────┘
+
+
+REQUEST-RESPONSE LIFECYCLE:
+═════════════════════════════════════════════════════════════════════════════
+
+1. USER INITIATES REQUEST
+   Component method: loadTreatments()
+   this.apiService.get('/treatments').subscribe(...)
+
+2. API SERVICE PREPARES REQUEST
+   baseUrl = '/api'
+   full URL = '/api/treatments'
+   Headers = { Authorization: Basic <credentials>, Content-Type: application/json }
+
+3. HTTP CLIENT SENDS REQUEST
+   Browser: GET http://localhost:4200/api/treatments
+
+4. PROXY INTERCEPTS
+   Angular Dev Server proxy detects /api/* pattern
+   Rewrites request to: GET http://localhost:8989/api/treatments
+   Adds/modifies headers as configured (changeOrigin: true)
+
+5. BACKEND RECEIVES REQUEST
+   Spring DispatcherServlet routes to TreatmentController.getAllTreatments()
+   Spring Security validates Authorization header
+   If auth fails: return 401 Unauthorized
+   If auth passes: proceed to handler method
+
+6. BUSINESS LOGIC EXECUTES
+   TreatmentController calls treatmentService.getAllTreatments()
+   Service calls treatmentRepository.findAll()
+   Repository executes: SELECT * FROM treatments
+   Database returns rows
+
+7. RESPONSE IS BUILT
+   Service collects rows into List<Treatment>
+   Controller wraps in response object:
+     {
+       "message": "Treatments fetched successfully",
+       "status": true,
+       "data": [
+         { treatmentId: 1, name: "Dialysis", cost: 5000 },
+         { treatmentId: 2, name: "Surgery", cost: 15000 },
+         ...
+       ]
+     }
+
+8. RESPONSE SENT BACK
+   HTTP 200 OK with JSON body
+   Proxy receives and forwards to browser
+
+9. BROWSER PROCESSES RESPONSE
+   ApiService Observable emits data
+   Component subscription receives response
+   Component.treatments = response.data
+   Angular bug detection triggers
+   Template re-renders with new data
+   User sees treatment list
+
+10. USER SEES DATA
+    HTML divs/tables updated with treatment information
+    Cycle complete!
+
+
+================================================================================
+SUMMARY
+================================================================================
+
+FRONTEND-BACKEND COMMUNICATION SUMMARY:
+
+✓ Frontend (Angular 4200) ←—proxy—→ Backend (Spring Boot 8989)
+✓ Communication: HTTP REST with JSON payloads
+✓ Authentication: Basic Auth (username:password in Base64 header)
+✓ Database: MySQL 8.0 with Hibernate ORM
+✓ Data Flow: Component → ApiService → HttpClient → Proxy → Controller →
+               Service → Repository → JPA → Hibernate → SQL → MySQL
+
+✓ Key Files:
+  Backend:
+    - application.properties (database config + JDBC fix)
+    - TreatmentController (and other Controllers for CRUD endpoints)
+    - TreatmentService (business logic)
+    - TreatmentRepository (data access)
+    - WebConfig.java (optional global CORS)
+  
+  Frontend:
+    - proxy.conf.json (dev proxy configuration)
+    - api.service.ts (HTTP client wrapper)
+    - auth.service.ts (credential storage)
+    - Components calling ApiService (login, treatments, etc.)
+
+✓ How They're Linked:
+  - Angular app builds API URL /api/resource
+  - Angular dev proxy intercepts and forwards to backend
+  - Backend CORS allows requests from localhost:4200
+  - ApiService adds authentication credentials
+  - Backend returns JSON, proxy passes back to frontend
+  - Frontend receives data and updates UI
+
+✓ Changes Made (June 12, 2026):
+  - Fixed MySQL connection issue in application.properties
+    (&allowPublicKeyRetrieval=true)
+  - Updated database initialization schema in health_db_initialization.sql
+
+✓ To Run:
+  Terminal 1: Start backend on localhost:8989
+  Terminal 2: Start frontend on localhost:4200 (with ng serve)
+  Login and interact with the application!
+
+================================================================================
+END OF DOCUMENTATION
+Generated: June 12, 2026
+Version: 1.0
+================================================================================

@@ -92,8 +92,8 @@ public class ClaimServiceImpl implements ClaimService {
                         hospital = new Hospital();
                         hospital.setHospitalName(treatment.getHospitalName());
                         hospital.setAddress(treatment.getHospitalAddress() != null ? treatment.getHospitalAddress() : "");
-                        hospital.setPhoneNumber(treatment.getHospitalPhone() != null ? treatment.getHospitalPhone() : "");
-                        hospital.setHospitalType("Private"); // Default type
+                        hospital.setAdmissionDate(treatment.getAdmissionDate());
+                        hospital.setDischargeDate(treatment.getDischargeDate());
                         hospital = hospitalRepository.save(hospital);
                     }
                     treatment.setHospital(hospital);
@@ -109,9 +109,7 @@ public class ClaimServiceImpl implements ClaimService {
                         doctor = new Doctor();
                         doctor.setDoctorName(treatment.getDoctorName());
                         doctor.setSpecialization(treatment.getDoctorSpecialization() != null ? treatment.getDoctorSpecialization() : "");
-                        doctor.setQualification(treatment.getDoctorQualification() != null ? treatment.getDoctorQualification() : "MBBS");
-                        doctor.setExperienceYears(treatment.getDoctorExperienceYears() != null ? treatment.getDoctorExperienceYears() : 0);
-                        doctor.setHospital(treatment.getHospital()); // Link to hospital
+                        doctor.setRegistrationNumber(treatment.getDoctorRegistrationNumber() != null ? treatment.getDoctorRegistrationNumber() : "");
                         doctor = doctorRepository.save(doctor);
                     }
                     treatment.setDoctor(doctor);

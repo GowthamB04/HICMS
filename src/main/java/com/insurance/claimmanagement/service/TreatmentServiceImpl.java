@@ -76,11 +76,11 @@ public class TreatmentServiceImpl implements TreatmentService {
 
             Treatment treatment = existingTreatment.get();
 
+            if (updates.containsKey("treatmentName") && updates.get("treatmentName") != null) {
+                treatment.setTreatmentName(updates.get("treatmentName").toString());
+            }
             if (updates.containsKey("diagnosis") && updates.get("diagnosis") != null) {
                 treatment.setDiagnosis(updates.get("diagnosis").toString());
-            }
-            if (updates.containsKey("treatmentDescription") && updates.get("treatmentDescription") != null) {
-                treatment.setTreatmentDescription(updates.get("treatmentDescription").toString());
             }
             if (updates.containsKey("treatmentAmount") && updates.get("treatmentAmount") != null) {
                 treatment.setTreatmentAmount(Double.valueOf(updates.get("treatmentAmount").toString()));

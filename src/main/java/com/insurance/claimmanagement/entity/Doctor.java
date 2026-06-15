@@ -1,10 +1,6 @@
 package com.insurance.claimmanagement.entity;
 
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "doctors")
@@ -20,33 +16,19 @@ public class Doctor {
     @Column(nullable = false, length = 50)
     private String specialization; // Cardiology, Orthopedics, etc.
     
-    @Column(nullable = false, length = 50)
-    private String qualification; // MBBS, MD, etc.
+    @Column(name = "registration_number", nullable = false, length = 50)
+    private String registrationNumber; // e.g., medical council registration
     
-    @Column(nullable = false)
-    private Integer experienceYears;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "hospital_id", nullable = false)
-    @JsonBackReference("hospital-doctor")
-    private Hospital hospital;
-    
-    // One Doctor has Many Treatments
-    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private List<Treatment> treatments = new ArrayList<>();
+    // Doctor table stores only frontend fields: name, specialization, registration number.
     
     // Constructor
     public Doctor() {
     }
     
-    public Doctor(String doctorName, String specialization, String qualification,
-                 Integer experienceYears, Hospital hospital) {
+    public Doctor(String doctorName, String specialization, String registrationNumber) {
         this.doctorName = doctorName;
         this.specialization = specialization;
-        this.qualification = qualification;
-        this.experienceYears = experienceYears;
-        this.hospital = hospital;
+        this.registrationNumber = registrationNumber;
     }
     
     // Getters and Setters
@@ -74,37 +56,14 @@ public class Doctor {
         this.specialization = specialization;
     }
     
-    public String getQualification() {
-        return qualification;
+    public String getRegistrationNumber() {
+        return registrationNumber;
+    }
+
+    public void setRegistrationNumber(String registrationNumber) {
+        this.registrationNumber = registrationNumber;
     }
     
-    public void setQualification(String qualification) {
-        this.qualification = qualification;
-    }
-    
-    public Integer getExperienceYears() {
-        return experienceYears;
-    }
-    
-    public void setExperienceYears(Integer experienceYears) {
-        this.experienceYears = experienceYears;
-    }
-    
-    public Hospital getHospital() {
-        return hospital;
-    }
-    
-    public void setHospital(Hospital hospital) {
-        this.hospital = hospital;
-    }
-    
-    public List<Treatment> getTreatments() {
-        return treatments;
-    }
-    
-    public void setTreatments(List<Treatment> treatments) {
-        this.treatments = treatments;
-    }
     
     @Override
     public String toString() {
@@ -112,7 +71,7 @@ public class Doctor {
                 "doctorId=" + doctorId +
                 ", doctorName='" + doctorName + '\'' +
                 ", specialization='" + specialization + '\'' +
-                "experienceYears=" + experienceYears +
+                ", registrationNumber='" + registrationNumber + '\'' +
                 '}';
     }
 }

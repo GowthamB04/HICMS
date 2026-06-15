@@ -71,11 +71,8 @@ public class DoctorServiceImpl implements DoctorService {
             if (updates.containsKey("specialization") && updates.get("specialization") != null) {
                 doctor.setSpecialization(updates.get("specialization").toString());
             }
-            if (updates.containsKey("qualification") && updates.get("qualification") != null) {
-                doctor.setQualification(updates.get("qualification").toString());
-            }
-            if (updates.containsKey("experienceYears") && updates.get("experienceYears") != null) {
-                doctor.setExperienceYears(Integer.valueOf(updates.get("experienceYears").toString()));
+            if (updates.containsKey("registrationNumber") && updates.get("registrationNumber") != null) {
+                doctor.setRegistrationNumber(updates.get("registrationNumber").toString());
             }
 
             return doctorRepository.save(doctor);

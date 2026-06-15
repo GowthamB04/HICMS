@@ -4,6 +4,7 @@ import com.insurance.claimmanagement.entity.Hospital;
 import com.insurance.claimmanagement.repository.HospitalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -68,14 +69,14 @@ public class HospitalServiceImpl implements HospitalService {
             if (updates.containsKey("hospitalName") && updates.get("hospitalName") != null) {
                 hospital.setHospitalName(updates.get("hospitalName").toString());
             }
-            if (updates.containsKey("hospitalType") && updates.get("hospitalType") != null) {
-                hospital.setHospitalType(updates.get("hospitalType").toString());
-            }
             if (updates.containsKey("address") && updates.get("address") != null) {
                 hospital.setAddress(updates.get("address").toString());
             }
-            if (updates.containsKey("phoneNumber") && updates.get("phoneNumber") != null) {
-                hospital.setPhoneNumber(updates.get("phoneNumber").toString());
+            if (updates.containsKey("admissionDate") && updates.get("admissionDate") != null) {
+                hospital.setAdmissionDate(LocalDate.parse(updates.get("admissionDate").toString()));
+            }
+            if (updates.containsKey("dischargeDate") && updates.get("dischargeDate") != null) {
+                hospital.setDischargeDate(LocalDate.parse(updates.get("dischargeDate").toString()));
             }
 
             return hospitalRepository.save(hospital);

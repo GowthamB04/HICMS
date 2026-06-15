@@ -16,8 +16,8 @@ public class Treatment {
     @Column(nullable = false, length = 100)
     private String diagnosis;
     
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String treatmentDescription;
+    @Column(name = "treatment_name", nullable = false, length = 100)
+    private String treatmentName;
     
     @Column(nullable = false)
     private Double treatmentAmount;
@@ -38,8 +38,10 @@ public class Treatment {
     @JoinColumn(name = "hospital_id", nullable = true)
     private Hospital hospital;
 
-    // Transient fields - used for capturing doctor/hospital info during claim submission
-    // but NOT persisted in database (single source of truth is Doctor/Hospital entities)
+    // NOTE: removed redundant transient doctor/hospital fields to avoid duplication
+    // UI collects only treatment name, diagnosis, date and amount; detailed
+    // doctor/hospital info is stored in their respective entities.
+    // Transient fields to accept minimal doctor/hospital inputs from UI
     @Transient
     private String doctorName;
 
@@ -47,10 +49,7 @@ public class Treatment {
     private String doctorSpecialization;
 
     @Transient
-    private String doctorQualification;
-
-    @Transient
-    private Integer doctorExperienceYears;
+    private String doctorRegistrationNumber;
 
     @Transient
     private String hospitalName;
@@ -59,7 +58,10 @@ public class Treatment {
     private String hospitalAddress;
 
     @Transient
-    private String hospitalPhone;
+    private LocalDate admissionDate;
+
+    @Transient
+    private LocalDate dischargeDate;
     
     // One Treatment has One Claim
     @OneToOne(mappedBy = "treatment", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -70,10 +72,10 @@ public class Treatment {
     public Treatment() {
     }
     
-    public Treatment(String diagnosis, String treatmentDescription, Double treatmentAmount,
+    public Treatment(String treatmentName, String diagnosis, Double treatmentAmount,
                     LocalDate treatmentDate, User user, Doctor doctor, Hospital hospital) {
+        this.treatmentName = treatmentName;
         this.diagnosis = diagnosis;
-        this.treatmentDescription = treatmentDescription;
         this.treatmentAmount = treatmentAmount;
         this.treatmentDate = treatmentDate;
         this.user = user;
@@ -97,13 +99,13 @@ public class Treatment {
     public void setDiagnosis(String diagnosis) {
         this.diagnosis = diagnosis;
     }
-    
-    public String getTreatmentDescription() {
-        return treatmentDescription;
+
+    public String getTreatmentName() {
+        return treatmentName;
     }
-    
-    public void setTreatmentDescription(String treatmentDescription) {
-        this.treatmentDescription = treatmentDescription;
+
+    public void setTreatmentName(String treatmentName) {
+        this.treatmentName = treatmentName;
     }
     
     public Double getTreatmentAmount() {
@@ -162,20 +164,12 @@ public class Treatment {
         this.doctorSpecialization = doctorSpecialization;
     }
 
-    public String getDoctorQualification() {
-        return doctorQualification;
+    public String getDoctorRegistrationNumber() {
+        return doctorRegistrationNumber;
     }
 
-    public void setDoctorQualification(String doctorQualification) {
-        this.doctorQualification = doctorQualification;
-    }
-
-    public Integer getDoctorExperienceYears() {
-        return doctorExperienceYears;
-    }
-
-    public void setDoctorExperienceYears(Integer doctorExperienceYears) {
-        this.doctorExperienceYears = doctorExperienceYears;
+    public void setDoctorRegistrationNumber(String doctorRegistrationNumber) {
+        this.doctorRegistrationNumber = doctorRegistrationNumber;
     }
 
     public String getHospitalName() {
@@ -194,13 +188,23 @@ public class Treatment {
         this.hospitalAddress = hospitalAddress;
     }
 
-    public String getHospitalPhone() {
-        return hospitalPhone;
+    public LocalDate getAdmissionDate() {
+        return admissionDate;
     }
 
-    public void setHospitalPhone(String hospitalPhone) {
-        this.hospitalPhone = hospitalPhone;
+    public void setAdmissionDate(LocalDate admissionDate) {
+        this.admissionDate = admissionDate;
     }
+
+    public LocalDate getDischargeDate() {
+        return dischargeDate;
+    }
+
+    public void setDischargeDate(LocalDate dischargeDate) {
+        this.dischargeDate = dischargeDate;
+    }
+
+    // Doctor/hospital transient accessors removed to avoid duplication; use Doctor/Hospital entities.
     
     public Claim getClaim() {
         return claim;
