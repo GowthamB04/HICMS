@@ -19,19 +19,8 @@ export class UsersComponent implements OnInit {
   flashMessage = '';
   flashType: 'success' | 'error' | '' = '';
   popupTimer: any;
-  showAddForm = false;
   showEditForm = false;
   editingUser: User | null = null;
-
-  newUser: any = {
-    username: '',
-    password: '',
-    fullName: '',
-    email: '',
-    phoneNumber: '',
-    role: 'POLICYHOLDER',
-    accountStatus: 'ACTIVE'
-  };
 
   constructor(
     private api: ApiService,
@@ -79,101 +68,10 @@ export class UsersComponent implements OnInit {
       });
   }
 
-  toggleAddForm(): void {
-    this.showAddForm = !this.showAddForm;
-
-    if (this.showAddForm) {
-      this.showEditForm = false;
-    }
-  }
-
-  addUser(): void {
-
-  const username = this.newUser.username?.trim();
-  const password = this.newUser.password?.trim();
-  const fullName = this.newUser.fullName?.trim();
-
-  if (!username || !password || !fullName) {
-    this.showPopup(
-      'Please fill in required fields (Username, Password, Name).',
-      'error'
-    );
-    return;
-  }
-
-  const payload = {
-    ...this.newUser,
-    username,
-    password,
-    fullName
-  };
-
-  console.log('Submitting User:', payload);
-
-  this.api.post<any>('/users', payload).subscribe({
-    next: (response) => {
-
-      console.log('Create User Response:', response);
-
-      const success =
-        response?.status === true ||
-        response?.data !== undefined;
-
-      if (success) {
-
-        const createdUser = response.data ?? response;
-
-        if (createdUser) {
-          this.users.push(createdUser);
-        } else {
-          this.loadUsers();
-        }
-
-        this.showAddForm = false;
-
-        this.newUser = {
-          username: '',
-          password: '',
-          fullName: '',
-          email: '',
-          phoneNumber: '',
-          role: 'POLICYHOLDER',
-          accountStatus: 'ACTIVE'
-        };
-
-        this.cdr.detectChanges();
-
-        this.showPopup(
-          'User added successfully.',
-          'success'
-        );
-
-      } else {
-        this.showPopup(
-          response?.message || 'Failed to add user.',
-          'error'
-        );
-      }
-    },
-    error: (error) => {
-  console.error('Error adding user:', error);
-
-  let message = 'Unable to add user at this time.';
-
-  if (error?.error?.message?.includes('cannot be null')) {
-    message =
-      'User could not be added because some required user details are missing. The User Is not Added in Insurance Buying policy Webpage';
-  }
-
-  this.showPopup(message, 'error');
-}
-  });
-}
 
   editUser(user: User): void {
     this.editingUser = { ...user };
     this.showEditForm = true;
-    this.showAddForm = false;
   }
 
   updateUser(): void {

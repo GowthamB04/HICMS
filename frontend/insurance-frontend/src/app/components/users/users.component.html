@@ -4,46 +4,14 @@
       <h2>User Management</h2>
       <p class="subtitle">View and manage registered users.</p>
     </div>
-    <button
-  type="button"
-  class="primary-button"
-  (click)="toggleAddForm()">
-      {{ showAddForm ? 'Cancel' : 'Add User' }}
-    </button>
+    <!-- Add User removed: admin add functionality disabled -->
   </div>
 
   <div *ngIf="flashMessage" class="flash-message" [ngClass]="{'success': flashType === 'success', 'error': flashType === 'error'}">
     {{ flashMessage }}
   </div>
 
-  <div *ngIf="showAddForm" class="edit-form">
-    <h3>Add New User</h3>
-    <div class="form-grid">
-      <label>Username
-        <input [(ngModel)]="newUser.username" type="text" placeholder="username" />
-      </label>
-      <label>Password
-        <input [(ngModel)]="newUser.password" type="password" placeholder="password" />
-      </label>
-      <label>Full Name
-        <input [(ngModel)]="newUser.fullName" type="text" placeholder="Full name" />
-      </label>
-      <label>Email
-        <input [(ngModel)]="newUser.email" type="email" placeholder="email@example.com" />
-      </label>
-      <label>Role
-        <select [(ngModel)]="newUser.role">
-          <option value="POLICYHOLDER">POLICYHOLDER</option>
-          <option value="APPROVER">APPROVER</option>
-          <option value="ADMIN">ADMIN</option>
-        </select>
-      </label>
-      <button
-  type="button"
-  class="primary-button"
-  (click)="addUser()">Save User</button>
-    </div>
-  </div>
+  <!-- Add user form removed; creation of users is now handled server-side or via other tools -->
 
   <div *ngIf="showEditForm && editingUser" class="edit-form">
     <h3>Update User Details</h3>
