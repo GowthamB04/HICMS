@@ -7,14 +7,12 @@
     <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
     <div *ngIf="successMessage" class="success">{{ successMessage }}</div>
 
-    <!-- Profile Photo Section -->
     <div class="profile-avatar-section">
   <div class="profile-avatar">
     {{ profileInitials }}
   </div>
 </div>
 
-    <!-- User Info Grid -->
     <div class="info-grid" *ngIf="!isLoading">
       <div class="info-block">
         <span>Role</span>

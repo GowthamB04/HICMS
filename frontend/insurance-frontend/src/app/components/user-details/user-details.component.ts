@@ -75,9 +75,7 @@ export class UserDetailsComponent implements OnInit {
           this.auth.setEmail(currentUser.email);
         }
       },
-      error: () => {
-        // Ignore fallback failure; email remains N/A if unavailable
-      }
+      error: () => {}
     });
   }
 

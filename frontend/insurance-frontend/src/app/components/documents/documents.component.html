@@ -38,7 +38,8 @@
               <td>{{ i + 1 }}</td>
               <td>{{ document.documentName }}</td>
               <td>{{ document.documentType }}</td>
-              <td>{{ document.uploadedDate }}</td>
+              <!-- <td>{{ document.uploadedDate|date :'medium' }}</td> -->
+              <td>{{ document.uploadedDate | date:'dd/MM/yyyy HH:mm' }}</td>
               <td>
                 <button
                   *ngIf="document.documentPath"
@@ -86,7 +87,8 @@
           <td>{{ document.claimNumber || document.claimId || 'N/A' }}</td>
           <td>{{ document.documentName }}</td>
           <td>{{ document.documentType }}</td>
-          <td>{{ document.uploadedDate }}</td>
+          <td>{{ document.uploadedDate | date:'dd/MM/yyyy' }}</td>
+          
           <td>
             <button
               *ngIf="document.documentPath"

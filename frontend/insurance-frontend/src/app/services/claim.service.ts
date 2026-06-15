@@ -7,7 +7,6 @@ import { ApiService } from './api.service';
 })
 export class ClaimService {
   private api = inject(ApiService);
-  // ApiService already prepends '/api', so we just provide the resource path
   private resourcePath = '/claims';
 
   getAllClaims(): Observable<any> {

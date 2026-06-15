@@ -30,7 +30,6 @@ export class HospitalsComponent implements OnInit {
   ngOnInit(): void {
     this.api.get<any>('/hospitals').subscribe({
       next: (response) => {
-        // Accessing .data as per the HospitalController response format
         this.hospitals = response.data || [];
         this.loading = false;
       },

@@ -1,2 +1,0 @@
-﻿/* Legacy duplicate file retained only for history.
-   This file is excluded from compilation in tsconfig.app.json. */

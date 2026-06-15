@@ -26,7 +26,6 @@ export class PaymentsComponent implements OnInit {
   showReceiveModal = false;
   receivePayment?: Payment;
 
-  // Key used to store seen payment IDs in browser storage
   private SEEN_PAYMENTS_KEY = 'seen_completed_payments';
 
   constructor(
@@ -86,7 +85,6 @@ export class PaymentsComponent implements OnInit {
             userId: p.user?.userId ?? p.userId,
           } as Payment));
 
-          // --- FIXED AUTO-POPUP LOGIC ---
           if (this.auth.role === 'POLICYHOLDER') {
             this.checkAndShowNewPayments();
           }
@@ -100,40 +98,28 @@ export class PaymentsComponent implements OnInit {
       });
   }
 
-  /**
-   * Scans for newly received completed payments that the user hasn't seen yet.
-   * If found, pops up automatically exactly ONCE.
-   */
   private checkAndShowNewPayments(): void {
     const seenIds: number[] = JSON.parse(localStorage.getItem(this.SEEN_PAYMENTS_KEY) || '[]');
 
-    // Find a COMPLETED payment whose ID isn't in our local storage tracker
     const newReceivedPayment = this.payments.find((payment) => {
       const isCompleted = payment.paymentStatus?.toUpperCase() === 'COMPLETED';
       return isCompleted && payment.id && !seenIds.includes(payment.id);
     });
 
     if (newReceivedPayment && newReceivedPayment.id) {
-      // Open the modal automatically
       this.receivePayment = newReceivedPayment;
       this.showReceiveModal = true;
 
-      // Immediately mark it as seen so it doesn't pop up next time
       seenIds.push(newReceivedPayment.id);
       localStorage.setItem(this.SEEN_PAYMENTS_KEY, JSON.stringify(seenIds));
     }
   }
 
-  /**
-   * Triggered manually when a policyholder clicks on a specific row
-   */
   viewPaymentDetails(payment: Payment): void {
-    // Only show details if the payment status is processed/completed
     if (payment.paymentStatus?.toUpperCase() === 'COMPLETED') {
       this.receivePayment = payment;
       this.showReceiveModal = true;
 
-      // Also ensure it's added to seen storage just in case
       if (payment.id) {
         const seenIds: number[] = JSON.parse(localStorage.getItem(this.SEEN_PAYMENTS_KEY) || '[]');
         if (!seenIds.includes(payment.id)) {

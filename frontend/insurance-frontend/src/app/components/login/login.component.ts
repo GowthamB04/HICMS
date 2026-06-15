@@ -63,7 +63,6 @@ export class LoginComponent {
                   }
                 },
                 error: () => {
-                  // ignore profile fetch error; navigation can proceed
                 },
                 complete: () => {
                   const target = '/user-details';

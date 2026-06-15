@@ -20,7 +20,6 @@ export class DocumentsComponent implements OnInit {
   loading = true;
   error = '';
 
-  // 2. Injected ChangeDetectorRef (cdr) into the constructor
   constructor(
     private api: ApiService,
     private claimService: ClaimService,
@@ -180,7 +179,7 @@ export class DocumentsComponent implements OnInit {
       this.error = 'Unable to determine user for documents.';
       this.documents = [];
       this.loading = false;
-      this.cdr.detectChanges(); // Refresh on error boundary
+      this.cdr.detectChanges(); 
       return;
     }
 
@@ -193,12 +192,12 @@ export class DocumentsComponent implements OnInit {
           this.documents = Array.isArray(result.data) ? result.data : [];
         }
         this.loading = false;
-        this.cdr.detectChanges(); // 3. Refresh UI instantly when user docs load
+        this.cdr.detectChanges(); 
       },
       error: () => {
         this.error = 'Unable to load documents.';
         this.loading = false;
-        this.cdr.detectChanges(); // Refresh UI on HTTP failure
+        this.cdr.detectChanges(); 
       },
     });
   }
@@ -212,18 +211,17 @@ export class DocumentsComponent implements OnInit {
         if (!response?.status) {
           this.error = response?.message || 'Unable to load assigned claims.';
           this.loading = false;
-          this.cdr.detectChanges(); // Refresh on layout errors
-          return;
+          this.cdr.detectChanges();           return;
         }
         this.approverClaims = Array.isArray(response.data) ? response.data : [];
         this.selectedClaim = this.approverClaims.length ? this.approverClaims[0] : undefined;
         this.loading = false;
-        this.cdr.detectChanges(); // 4. Refresh UI instantly when approver claims arrive
+        this.cdr.detectChanges(); 
       },
       error: () => {
         this.error = 'Unable to load assigned claims.';
         this.loading = false;
-        this.cdr.detectChanges(); // Refresh UI on HTTP failure
+        this.cdr.detectChanges(); 
       },
     });
   }
@@ -232,7 +230,7 @@ export class DocumentsComponent implements OnInit {
     const select = event.target as HTMLSelectElement | null;
     const claimId = select?.value ?? '';
     this.selectedClaim = this.approverClaims.find((claim) => String(claim.claimId) === claimId);
-    this.cdr.detectChanges(); // 5. Refresh view instantly when dropdown changes manually
+    this.cdr.detectChanges(); 
   }
 
   get selectedDocuments(): Document[] {

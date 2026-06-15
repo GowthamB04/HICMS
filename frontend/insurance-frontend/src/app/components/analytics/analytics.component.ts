@@ -81,7 +81,6 @@ export class AnalyticsComponent implements OnInit {
     return this.safeNumber(this.analytics?.totalRejectedClaims);
   }
 
-  // ✅ SUCCESS = APPROVED + SETTLED
   get successfulClaims(): number {
     return (
       this.safeNumber(this.analytics?.totalApprovedClaims) +
@@ -89,12 +88,10 @@ export class AnalyticsComponent implements OnInit {
     );
   }
 
-  // ✅ REQUESTED AMOUNT
   get totalRequestedAmount(): number {
     return this.safeNumber(this.analytics?.totalRequestedAmount);
   }
 
-  // ✅ PAID AMOUNT
   get totalPaidAmount(): number {
     return this.safeNumber(this.analytics?.totalPaidAmount);
   }
@@ -134,7 +131,6 @@ export class AnalyticsComponent implements OnInit {
     )`;
   }
 
-  // ✅ BAR WIDTH FIX
   private percent(value: number): number {
     const total = this.totalRequestedAmount + this.totalPaidAmount;
     if (!total) return 0;
