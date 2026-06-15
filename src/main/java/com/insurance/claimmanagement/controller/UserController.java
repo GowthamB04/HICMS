@@ -119,7 +119,6 @@ public class UserController {
         }
     }
     
-    // Create new user (Admin only)
     @PostMapping
     public ResponseEntity<Map<String, Object>> createUser(@RequestBody User user) {
         try {
