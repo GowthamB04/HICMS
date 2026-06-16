@@ -23,7 +23,6 @@ public class AdminAnalyticsController {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    // ✅ UPDATED OVERVIEW API
     @GetMapping("/overview")
     public ResponseEntity<Map<String, Object>> getAnalyticsOverview() {
         try {
@@ -36,15 +35,12 @@ public class AdminAnalyticsController {
             Double totalApprovedAmount = claimRepository.sumApprovedClaimAmount();
             Double totalPaidAmount = paymentRepository.sumCompletedPaymentAmount();
 
-            // ✅ NEW: REQUESTED AMOUNT (IMPORTANT FIX)
             Double totalRequestedAmount = claimRepository.sumClaimAmount();
 
-            // ✅ Null Safety
             if (totalApprovedAmount == null) totalApprovedAmount = 0.0;
             if (totalPaidAmount == null) totalPaidAmount = 0.0;
             if (totalRequestedAmount == null) totalRequestedAmount = 0.0;
 
-            // ✅ Percentages
             double approvalPercentage = totalClaims > 0
                     ? (totalApprovedClaims * 100.0) / totalClaims
                     : 0.0;
@@ -55,22 +51,18 @@ public class AdminAnalyticsController {
 
             Map<String, Object> data = new HashMap<>();
 
-            // ✅ Count Data
             data.put("totalClaims", totalClaims);
             data.put("totalPendingClaims", totalPendingClaims);
             data.put("totalApprovedClaims", totalApprovedClaims);
             data.put("totalRejectedClaims", totalRejectedClaims);
             data.put("totalSettledClaims", totalSettledClaims);
 
-            // ✅ Percentage Data
             data.put("approvalPercentage", approvalPercentage);
             data.put("rejectionPercentage", rejectionPercentage);
 
-            // ✅ Amount Data
             data.put("totalApprovedAmount", totalApprovedAmount);
             data.put("totalPaidAmount", totalPaidAmount);
 
-            // ✅ NEW FIELD (KEY FIX)
             data.put("totalRequestedAmount", totalRequestedAmount);
 
             Map<String, Object> response = new HashMap<>();
@@ -88,7 +80,6 @@ public class AdminAnalyticsController {
         }
     }
 
-    // ✅ TOP HOSPITALS
     @GetMapping("/top-hospitals")
     public ResponseEntity<Map<String, Object>> getTopHospitals() {
         try {
@@ -118,7 +109,6 @@ public class AdminAnalyticsController {
         }
     }
 
-    // ✅ TOP DOCTORS
     @GetMapping("/top-doctors")
     public ResponseEntity<Map<String, Object>> getTopDoctors() {
         try {
@@ -148,7 +138,6 @@ public class AdminAnalyticsController {
         }
     }
 
-    // ✅ HIGH RISK USERS
     @GetMapping("/high-risk-users")
     public ResponseEntity<Map<String, Object>> getHighRiskUsers() {
         try {
@@ -187,7 +176,6 @@ public class AdminAnalyticsController {
         }
     }
 
-    // ✅ TREATMENT STATISTICS
     @GetMapping("/treatment-statistics")
     public ResponseEntity<Map<String, Object>> getTreatmentStatistics() {
         try {
@@ -217,7 +205,6 @@ public class AdminAnalyticsController {
         }
     }
 
-    // ✅ RECOMMENDATIONS
     @GetMapping("/recommendations")
     public ResponseEntity<Map<String, Object>> getRecommendationSummary() {
         try {
